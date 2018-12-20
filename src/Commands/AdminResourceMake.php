@@ -15,9 +15,25 @@ class AdminResourceMake extends GeneratorCommand
      */
     protected $name = 'admin:make';
 
-    protected $types = [
+    /**
+     * 要创建的类文件
+     *
+     * @var array
+     */
+    protected $classes = [
         'controller' => [],
-        'service'    => [],
+    ];
+
+    /**
+     * 要创建的模板文件
+     *
+     * @var array
+     */
+    protected $templates = [
+        'index',
+        'add',
+        'edit',
+        '_form',
     ];
 
     /**
@@ -25,14 +41,7 @@ class AdminResourceMake extends GeneratorCommand
      *
      * @var string
      */
-    protected $description = '创建后台资源';
-
-    /**
-     * The type of class being generated.
-     *
-     * @var string
-     */
-    protected $type = 'Resource';
+    protected $description = 'Create module, controller, service, model and four templates (index, add, edit and _form)';
 
     protected $replacements = [];
 
@@ -41,17 +50,10 @@ class AdminResourceMake extends GeneratorCommand
     protected $controllerName;
 
     protected $modelName;
+    protected $modelNamespace;
 
     protected $serviceName;
-
-    protected $requestName;
-
-    protected function parseInputName($name)
-    {
-        $name = ltrim($name, '\\/');
-
-        return str_replace('/', '\\', $name);
-    }
+    protected $serviceNamespace;
 
     /**
      * Execute the console command.
@@ -60,24 +62,13 @@ class AdminResourceMake extends GeneratorCommand
      */
     public function handle()
     {
-        $inputName = $this->getNameInput();
-        $inputName = $this->parseInputName($inputName);
-        list($this->moduleName, $this->controllerName) = explode('\\', $inputName);
-        $this->serviceName = $this->controllerName;
-
-        $model = $this->option('model');
-        if ('no-model' !== $model) {
-            $this->types['model'] = [];
-
-            $this->modelName = $model;
-            if (is_null($model)) {
-                $this->modelName = $this->controllerName;
-            }
-        }
+        $this->handleNameInput($this->getNameInput());
+        $this->handleModel(str_plural($this->controllerName, 1));
+        $this->handleService($this->controllerName);
 
         $this->initReplacements();
 
-        foreach ($this->types as $type => $file) {
+        foreach ($this->classes as $type => $file) {
 
             $qualifyMethod = 'qualify' . ucfirst($type) . 'Class';
             $getNameMethod = 'get' . ucfirst($type) . 'Name';
@@ -93,13 +84,12 @@ class AdminResourceMake extends GeneratorCommand
         // First we will check to see if the class already exists. If it does, we don't want
         // to create the class and overwrite the user's code. So, we will bail out so the
         // code is untouched. Otherwise, we will continue generating this class' files.
-        // if ((! $this->hasOption('force') ||
-        //         ! $this->option('force')) &&
-        //     $this->alreadyExists($this->getNameInput())) {
-        //     $this->error($this->type.' already exists!');
-        //
-        //     return false;
-        // }
+        if ($this->alreadyExists(collect($files)->first()['path'])) {
+
+            $this->error('These files already exists!');
+
+            return false;
+        }
 
         // Next, we will generate the path to the location where this class' file should get
         // written. Then, we will build the class and make the proper replacements on the
@@ -110,19 +100,54 @@ class AdminResourceMake extends GeneratorCommand
             $this->info(ucfirst($type) . ' created successfully.');
         }
 
-        $views = [
-            'index',
-            'add',
-            'edit',
-            '_form'
-        ];
-        foreach ($views as $view) {
+        foreach ($this->templates as $view) {
 
             $path = $this->getViewPath($this->getViewModuleName() . '/' . $this->getViewControllerName() . '/' . $view);
             $this->makeDirectory($path);
             $this->files->put($path, $this->buildView($view));
             $this->info($view . ' view created successfully.');
         }
+    }
+
+    protected function parseClassName($name)
+    {
+        $name = ltrim($name, '\\/');
+
+        return str_replace('/', '\\', $name);
+    }
+
+    public function handleModel($default)
+    {
+        // 处理输入的 model
+        if ('nothing' !== $this->option('model')) {
+            $this->classes['model'] = [];
+
+            if (! is_null($model = $this->option('model'))) {
+                $default = $model;
+            }
+        }
+
+        $this->setModelName($default);
+    }
+
+    public function handleService($default)
+    {
+        // 处理输入的 service
+        if ('nothing' !== $this->option('service')) {
+            $this->classes['service'] = [];
+
+            if (! is_null($service = $this->option('service'))) {
+                $default = $service;
+            }
+        }
+
+        $this->setServiceName($default);
+    }
+
+    public function handleNameInput($inputName)
+    {
+        $inputName = $this->parseClassName($inputName);
+        list($this->moduleName, $this->controllerName) = explode('\\', $inputName);
     }
 
     /**
@@ -367,18 +392,6 @@ class AdminResourceMake extends GeneratorCommand
         return $this->files->exists($path);
     }
 
-    /**
-     * Get the console command options.
-     *
-     * @return array
-     */
-    protected function getOptions()
-    {
-        return [
-            ['model', null, InputOption::VALUE_OPTIONAL, 'Generate with a model.', 'no-model'],
-        ];
-    }
-
     public function getControllerName()
     {
         return str_finish($this->controllerName, 'Controller');
@@ -389,6 +402,31 @@ class AdminResourceMake extends GeneratorCommand
         return $this->modelName;
     }
 
+    public function setModelName($name)
+    {
+        $name = $this->parseClassName($name);
+
+        $this->modelName = array_last(explode('\\', $name));
+
+        $this->setModelNamespace($name);
+
+        return $this;
+    }
+
+    public function getModelNamespace()
+    {
+        return $this->modelNamespace;
+    }
+
+    public function setModelNamespace($name)
+    {
+        $name = $this->parseClassName($name);
+
+        $this->modelNamespace = str_replace_last('\\' . $this->getModelName(), '', $this->qualifyModelClass($name));
+
+        return $this;
+    }
+
     public function getModelTableName()
     {
         return str_plural(snake_case($this->modelName));
@@ -396,12 +434,33 @@ class AdminResourceMake extends GeneratorCommand
 
     public function getServiceName()
     {
-        return str_finish($this->serviceName, 'Service');
+        return $this->serviceName;
     }
 
-    public function getRequestName()
+    public function setServiceName($name)
     {
-        return str_finish($this->requestName, 'Request');
+        $name = $this->parseClassName($name);
+        $name = str_finish($name, 'Service');
+
+        $this->serviceName = array_last(explode('\\', $name));
+
+        $this->setServiceNamespace($name);
+
+        return $this;
+    }
+
+    public function getServiceNamespace()
+    {
+        return $this->serviceNamespace;
+    }
+
+    public function setServiceNamespace($name)
+    {
+        $name = $this->parseClassName($name);
+
+        $this->serviceNamespace = str_replace_last('\\' . $this->getServiceName(), '', $this->qualifyServiceClass($name));
+
+        return $this;
     }
 
     public function getModuleName()
@@ -424,11 +483,29 @@ class AdminResourceMake extends GeneratorCommand
         $this->replacements['dummy_module'] = $this->getViewModuleName();
         $this->replacements['dummy_class'] = $this->getViewControllerName();
 
-        $this->replacements['DummyModelNamespace'] = $this->qualifyModelClass($this->getModelName());
+        $this->replacements['DummyControllerNamespace'] = str_replace('\\' . $this->getControllerName(), '', $this->qualifyControllerClass($this->getControllerName()));
+        $this->replacements['DummyControllerClass'] = $this->getControllerName();
+
+        $this->replacements['DummyModelUse'] = str_finish($this->getModelNamespace(), '\\' . $this->getModelName());
+        $this->replacements['DummyModelNamespace'] = $this->getModelNamespace();
         $this->replacements['DummyModelClass'] = $this->getModelName();
         $this->replacements['dummy_table'] = $this->getModelTableName();
 
-        $this->replacements['DummyServiceNamespace'] = $this->qualifyServiceClass($this->getServiceName());
+        $this->replacements['DummyServiceUse'] = str_finish($this->getServiceNamespace(), '\\' . $this->getServiceName());
+        $this->replacements['DummyServiceNamespace'] = $this->getServiceNamespace();
         $this->replacements['DummyServiceClass'] = $this->getServiceName();
+    }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array
+     */
+    protected function getOptions()
+    {
+        return [
+            ['model', 'm', InputOption::VALUE_OPTIONAL, 'Generate with a model.', 'nothing'],
+            ['service', 's', InputOption::VALUE_OPTIONAL, 'Generate with a service.', 'nothing'],
+        ];
     }
 }

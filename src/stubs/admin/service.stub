@@ -1,9 +1,9 @@
 <?php
 
-namespace DummyNamespace;
+namespace DummyServiceNamespace;
 
 use DB;
-use DummyModelNamespace;
+use DummyModelUse;
 use App\Services\Service;
 
 class DummyServiceClass extends Service

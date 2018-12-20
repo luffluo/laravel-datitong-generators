@@ -1,12 +1,12 @@
 <?php
 
-namespace DummyNamespace;
+namespace DummyControllerNamespace;
 
+use DummyServiceUse;
 use Illuminate\Http\Request;
-use DummyServiceNamespace;
 use DummyRootNamespaceHttp\Controllers\Admin\BaseController;
 
-class DummyClass extends BaseController
+class DummyControllerClass extends BaseController
 {
     protected $service;
 
