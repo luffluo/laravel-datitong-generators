@@ -1,0 +1,59 @@
+@extends('admin::layouts.main')
+
+@section('content')
+    <!--页面主体begin-->
+    <div class="contentpanel">
+        <div class="panel panel-default" id="alertparent">
+            <form class="form-horizontal form-bordered" method="post" action=""
+                  enctype="multipart/form-data">
+                <div class="panel-body">
+
+                    <div class="form-group">
+                        <label class="col-md-2 control-label" for="name">名称</label>
+                        <div class="col-md-9">
+                            <input name="name" type="text" class="form-control" id="name"
+                                   placeholder="名称"
+                                   value="{{ old('name', $data['name'] ?? '') }}">
+                        </div>
+                    </div>
+
+                    <div class="panel-footer">
+                        <div class="row">
+                            <div class="col-md-9 col-md-offset-2">
+                                <button class="btn btn-primary" type="submit" name="do" value="save"
+                                        asyn-validation>提交</button>
+                                <a href="{!! $current_module_url . 'index' !!}"
+                                   class="btn btn-default ml10">返回</a>
+                            </div>
+                        </div>
+                    </div><!-- panel-footer -->
+
+                </div><!-- panel-body -->
+            </form>
+        </div>
+    </div>
+
+    <!--页面主体end-->
+@endsection
+
+@section('admin-css')
+    @parent
+    <!-- 引入样式 -->
+@endsection
+
+@section('admin-css-inner')
+    @parent
+    <!-- 引入样式 -->
+    <style>
+    </style>
+@endsection
+
+@section('admin-js')
+    @parent
+@endsection
+
+@section('admin-js-inner')
+    @parent
+    <script>
+    </script>
+@endsection

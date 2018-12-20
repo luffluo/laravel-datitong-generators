@@ -1,0 +1,55 @@
+<?php
+
+namespace DummyNamespace;
+
+use DB;
+use DummyModelNamespace;
+use App\Services\Service;
+
+class DummyServiceClass extends Service
+{
+    public function __construct(DummyModelClass $model)
+    {
+        parent::__construct();
+
+        $this->model = $model;
+    }
+
+    public function save($data)
+    {
+        if (! empty($data['id'])) {
+            $model = $data['id'] instanceof $this->model ? $data['id'] : $this->getRow($data['id']);
+        } else {
+            $model = $this->model;
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $model->fill($data);
+            $result = $model->save();
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            logger()->error($e->getMessage());
+        }
+
+        return $result ? $model : $result;
+    }
+
+    public function getAllByPage($filter = [], $order = [], $fields = ['*'], $with = [], $perPage = null)
+    {
+        $query = $this->queryFilter($this->model->newQuery(), $filter);
+        $query = $query->select($fields);
+        $query = $this->queryWith($query, $with);
+        $query = $this->queryOrder($query, $order);
+
+        return $this->handleDataOfPagination($query->paginate($perPage ?: $this->pageNum), $filter);
+    }
+
+    public function queryFilter($query, $filter)
+    {
+        return parent::queryFilter($query, $filter);
+    }
+}

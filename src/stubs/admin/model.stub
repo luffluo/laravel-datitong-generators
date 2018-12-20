@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Models;
+
+class DummyModelClass extends Model
+{
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'dummy_table';
+
+    protected $fillable = [
+    ];
+}
+

@@ -1,0 +1,74 @@
+@extends('admin.layouts.main')
+
+@section('operation_buttons')
+    @if(!empty($menu['current_access']) && in_array('add', $menu['current_access']))
+        <a class="btn btn-primary btn-sm" href="{{ $current_module_url }}add">添加</a>@endif
+@endsection
+
+@section('content')
+    <!--页面主体begin-->
+
+    <div class="contentpanel">
+        <div class="panel" id="alertparent">
+            <div class="searchbox">
+                <div class="search_btbox"><span>搜索</span></div>
+                <form class="form-inline" method="get" action="">
+
+                    <div class="form-group">
+                        <label for="name">名称</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ $search['name'] ?? '' }}" placeholder="名称">
+                    </div>
+
+                    <button type="submit" class="btn btn-success">搜索</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-body autopadding">
+                <div class="table-responsive">
+                    <table class="table table-gray eveline mb20">
+                    <thead>
+                    <tr>
+                        <th class="onlyline">名称</th>
+                        <th class="onlyline">操作</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    @if(!empty($data['data']))
+                        @foreach($data['data'] as $item)
+                            <tr>
+                                <td>{{ $item['name'] ?? '-' }}</td>
+                                <td valign="middle" class="ctr onlyline">
+                                    @if(!empty($menu['current_access']) && in_array('edit', $menu['current_access']))
+                                        <a href="{{ $current_module_url }}edit?id={{ $item['id'] }}" class="blue">编辑</a>
+                                    @endif
+                                    @if(!empty($menu['current_access']) && in_array('delete', $menu['current_access']))
+                                        <a data-src="{{ $current_module_url }}delete?id={{ $item['id'] }}"
+                                           class="blue data-del">删除</a>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    @else
+                        <tr>
+                            <td class="noinfor" colspan="2">暂无信息</td>
+                        </tr>
+                    @endif
+                    </tbody>
+                </table>
+                </div>
+
+                @include('admin::common._pagination')
+
+            </div>
+        </div>
+    </div>
+@endsection
+
+@section('admin-js-inner')
+    @parent
+    <script>
+    </script>
+@endsection

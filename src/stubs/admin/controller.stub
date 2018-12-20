@@ -1,0 +1,143 @@
+<?php
+
+namespace DummyNamespace;
+
+use Illuminate\Http\Request;
+use DummyServiceNamespace;
+use DummyRootNamespaceHttp\Controllers\Admin\BaseController;
+
+class DummyClass extends BaseController
+{
+    protected $service;
+
+    public function __construct(DummyServiceClass $service)
+    {
+        parent::__construct();
+
+        $this->service = $service;
+    }
+
+    public function index(Request $request)
+    {
+        $search = $request->all();
+
+        $data = $this->service->getAllByPage();
+
+        return $this->view($this->currentView, compact('data', 'search'));
+    }
+
+    public function add(Request $request)
+    {
+        if ($request->isMethod('post')) {
+
+            $validator = $this->getValidationFactory()->make(
+                $request->all(),
+                $this->formRules($request),
+                $this->formMessages(),
+                $this->formAttributes()
+            );
+
+            if ($validator->fails()) {
+                if ($request->expectsJson()) {
+                    return $this->jsonResponseErrorValidate($validator->getMessageBag()->toArray());
+                }
+
+                return back()->withErrors($validator)->withInput();
+            }
+
+            if ($request->expectsJson()) {
+                return [
+                    'code'    => 200,
+                    'message' => 'ok',
+                ];
+            }
+
+            $data = $this->service->save($request->all());
+
+            if (! $data) {
+                return back()->withInput()->withErrors('添加失败');
+            }
+
+            return redirect()->to($this->currentModuleUrl . 'index')->withSuccess('添加成功');
+        }
+
+        $data = $this->service->model();
+
+        return $this->view($this->currentView, compact('data'));
+    }
+
+    public function edit(Request $request)
+    {
+        if ($request->isMethod('post')) {
+
+            $validator = $this->getValidationFactory()->make(
+                $request->all(),
+                $this->formRules($request),
+                $this->formMessages(),
+                $this->formAttributes()
+            );
+
+            if ($validator->fails()) {
+                if ($request->expectsJson()) {
+                    return $this->jsonResponseErrorValidate($validator->getMessageBag()->toArray());
+                }
+
+                return back()->withErrors($validator)->withInput();
+            }
+
+            if ($request->expectsJson()) {
+                return [
+                    'code'    => 200,
+                    'message' => 'ok',
+                ];
+            }
+
+            $data = $this->service->save($request->all());
+
+            if (! $data) {
+                return back()->withInput()->withErrors('添加失败');
+            }
+
+            return redirect()->to($this->currentModuleUrl . 'index')->withSuccess('添加成功');
+        }
+
+        $data = $this->findModel($request->id);
+
+        return $this->view($this->currentView, compact('data'));
+    }
+
+    public function delete(Request $request)
+    {
+        $model = $this->findModel($request->id);
+
+        if (! $model->delete()) {
+            return back()->withErrors('删除失败');
+        }
+
+        return back()->withSuccess('删除成功');
+    }
+
+    public function findModel($id)
+    {
+        if ($model = $this->service->getRow($id)) {
+            return $model;
+        }
+
+        return abort(404);
+    }
+
+    public function formRules(Request $request)
+    {
+        return [];
+    }
+
+    public function formAttributes()
+    {
+        return [];
+    }
+
+    public function formMessages()
+    {
+        return [];
+    }
+}
