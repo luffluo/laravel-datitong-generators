@@ -1,12 +1,11 @@
 <?php
 
-namespace Luffluo\Generators\Commands;
+namespace Chuangke\LaravelGenerators\Commands;
 
-use Illuminate\Support\Str;
 use Illuminate\Console\GeneratorCommand;
 use Symfony\Component\Console\Input\InputOption;
 
-class AdminResourceMake extends GeneratorCommand
+class AdminMake extends GeneratorCommand
 {
     /**
      * The name and signature of the console command.
@@ -41,7 +40,7 @@ class AdminResourceMake extends GeneratorCommand
      *
      * @var string
      */
-    protected $description = 'Create module, controller, service, model and four templates (index, add, edit and _form)';
+    protected $description = 'Create module, request, controller, service, model and four templates (index, add, edit and _form)';
 
     protected $replacements = [];
 
@@ -55,6 +54,9 @@ class AdminResourceMake extends GeneratorCommand
     protected $serviceName;
     protected $serviceNamespace;
 
+    protected $requestName;
+    protected $requestNamespace;
+
     /**
      * Execute the console command.
      *
@@ -63,7 +65,8 @@ class AdminResourceMake extends GeneratorCommand
     public function handle()
     {
         $this->handleNameInput($this->getNameInput());
-        $this->handleModel(str_plural($this->controllerName, 1));
+        $this->handleModel($this->controllerName);
+        $this->handleRequest($this->controllerName);
         $this->handleService($this->controllerName);
 
         $this->initReplacements();
@@ -118,6 +121,8 @@ class AdminResourceMake extends GeneratorCommand
 
     public function handleModel($default)
     {
+        $default = str_plural($default, 1);
+
         // 处理输入的 model
         if ('nothing' !== $this->option('model')) {
             $this->classes['model'] = [];
@@ -142,6 +147,19 @@ class AdminResourceMake extends GeneratorCommand
         }
 
         $this->setServiceName($default);
+    }
+
+    public function handleRequest($default)
+    {
+        if ('nothing' !== $this->option('request')) {
+            $this->classes['request'] = [];
+
+            if (! is_null($request = $this->option('request'))) {
+                $default = $request;
+            }
+        }
+
+        $this->setRequestName($default);
     }
 
     public function handleNameInput($inputName)
@@ -243,7 +261,7 @@ class AdminResourceMake extends GeneratorCommand
      */
     protected function getPath($name)
     {
-        $name = Str::replaceFirst($this->rootNamespace(), '', $name);
+        $name = str_replace_first($this->rootNamespace(), '', $name);
 
         return $this->laravel['path'] . '/' . str_replace('\\', '/', $name) . '.php';
     }
@@ -264,7 +282,7 @@ class AdminResourceMake extends GeneratorCommand
     {
         $rootNamespace = $this->rootNamespace();
 
-        if (Str::startsWith($name, $rootNamespace)) {
+        if (starts_with($name, $rootNamespace)) {
             return $name;
         }
 
@@ -286,7 +304,7 @@ class AdminResourceMake extends GeneratorCommand
     {
         $rootNamespace = $this->rootNamespace();
 
-        if (Str::startsWith($name, $rootNamespace)) {
+        if (starts_with($name, $rootNamespace)) {
             return $name;
         }
 
@@ -306,7 +324,7 @@ class AdminResourceMake extends GeneratorCommand
     {
         $rootNamespace = $this->rootNamespace();
 
-        if (Str::startsWith($name, $rootNamespace)) {
+        if (starts_with($name, $rootNamespace)) {
 
             return $name;
         }
@@ -327,7 +345,7 @@ class AdminResourceMake extends GeneratorCommand
     {
         $rootNamespace = $this->rootNamespace();
 
-        if (Str::startsWith($name, $rootNamespace)) {
+        if (starts_with($name, $rootNamespace)) {
             return $name;
         }
 
@@ -463,6 +481,37 @@ class AdminResourceMake extends GeneratorCommand
         return $this;
     }
 
+    public function getRequestName()
+    {
+        return $this->requestName;
+    }
+
+    public function setRequestName($name)
+    {
+        $name = $this->parseClassName($name);
+        $name = str_finish($name, 'Request');
+
+        $this->requestName = array_last(explode('\\', $name));
+
+        $this->setRequestNamespace($name);
+
+        return $this;
+    }
+
+    public function getRequestNamespace()
+    {
+        return $this->requestNamespace;
+    }
+
+    public function setRequestNamespace($name)
+    {
+        $name = $this->parseClassName($name);
+
+        $this->requestNamespace = str_replace_last('\\' . $this->getRequestName(), '', $this->qualifyRequestClass($name));
+
+        return $this;
+    }
+
     public function getModuleName()
     {
         return $this->moduleName;
@@ -482,6 +531,10 @@ class AdminResourceMake extends GeneratorCommand
     {
         $this->replacements['dummy_module'] = $this->getViewModuleName();
         $this->replacements['dummy_class'] = $this->getViewControllerName();
+
+        $this->replacements['DummyRequestUse'] = str_finish($this->getRequestNamespace(), '\\' . $this->getRequestName());
+        $this->replacements['DummyRequestNamespace'] = $this->getRequestNamespace();
+        $this->replacements['DummyRequestClass'] = $this->getRequestName();
 
         $this->replacements['DummyControllerNamespace'] = str_replace('\\' . $this->getControllerName(), '', $this->qualifyControllerClass($this->getControllerName()));
         $this->replacements['DummyControllerClass'] = $this->getControllerName();
@@ -506,6 +559,7 @@ class AdminResourceMake extends GeneratorCommand
         return [
             ['model', 'm', InputOption::VALUE_OPTIONAL, 'Generate with a model.', 'nothing'],
             ['service', 's', InputOption::VALUE_OPTIONAL, 'Generate with a service.', 'nothing'],
+            ['request', 'r', InputOption::VALUE_OPTIONAL, 'Generate with a request.', 'nothing'],
         ];
     }
 }

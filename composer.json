@@ -11,7 +11,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Luffluo\\Generators\\": "src/"
+            "Chuangke\\LaravelGenerators\\": "src/"
         }
     },
     "require": {
@@ -24,7 +24,7 @@
         "component": "package",
         "laravel": {
             "providers": [
-                "Luffluo\\Generators\\GeneratorsServiceProvider"
+                "Chuangke\\LaravelGenerators\\ServiceProvider"
             ]
         }
     }

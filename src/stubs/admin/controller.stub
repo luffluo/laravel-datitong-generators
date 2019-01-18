@@ -3,6 +3,7 @@
 namespace DummyControllerNamespace;
 
 use DummyServiceUse;
+use DummyRequestUse;
 use Illuminate\Http\Request;
 use DummyRootNamespaceHttp\Controllers\Admin\BaseController;
 
@@ -26,31 +27,11 @@ class DummyControllerClass extends BaseController
         return $this->view($this->currentView, compact('data', 'search'));
     }
 
-    public function add(Request $request)
+    public function add(DummyRequestClass $request)
     {
         if ($request->isMethod('post')) {
 
-            $validator = $this->getValidationFactory()->make(
-                $request->all(),
-                $this->formRules($request),
-                $this->formMessages(),
-                $this->formAttributes()
-            );
-
-            if ($validator->fails()) {
-                if ($request->expectsJson()) {
-                    return $this->jsonResponseErrorValidate($validator->getMessageBag()->toArray());
-                }
-
-                return back()->withErrors($validator)->withInput();
-            }
-
-            if ($request->expectsJson()) {
-                return [
-                    'code'    => 200,
-                    'message' => 'ok',
-                ];
-            }
+            $this->expectsJsonAndEchoSuccess();
 
             $data = $this->service->save($request->all());
 
@@ -66,31 +47,11 @@ class DummyControllerClass extends BaseController
         return $this->view($this->currentView, compact('data'));
     }
 
-    public function edit(Request $request)
+    public function edit(DummyRequestClass $request)
     {
         if ($request->isMethod('post')) {
 
-            $validator = $this->getValidationFactory()->make(
-                $request->all(),
-                $this->formRules($request),
-                $this->formMessages(),
-                $this->formAttributes()
-            );
-
-            if ($validator->fails()) {
-                if ($request->expectsJson()) {
-                    return $this->jsonResponseErrorValidate($validator->getMessageBag()->toArray());
-                }
-
-                return back()->withErrors($validator)->withInput();
-            }
-
-            if ($request->expectsJson()) {
-                return [
-                    'code'    => 200,
-                    'message' => 'ok',
-                ];
-            }
+            $this->expectsJsonAndEchoSuccess();
 
             $data = $this->service->save($request->all());
 
@@ -124,20 +85,5 @@ class DummyControllerClass extends BaseController
         }
 
         return abort(404);
-    }
-
-    public function formRules(Request $request)
-    {
-        return [];
-    }
-
-    public function formAttributes()
-    {
-        return [];
-    }
-
-    public function formMessages()
-    {
-        return [];
     }
 }

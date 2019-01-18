@@ -1,10 +1,10 @@
 <?php
 
-namespace Luffluo\Generators;
+namespace Chuangke\LaravelGenerators;
 
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\ServiceProvider as LaravelServiceProvider;
 
-class GeneratorsServiceProvider extends ServiceProvider
+class ServiceProvider extends LaravelServiceProvider
 {
     /**
      * The commands to be registered.
@@ -12,7 +12,7 @@ class GeneratorsServiceProvider extends ServiceProvider
      * @var array
      */
     protected $commands = [
-        '\Luffluo\Generators\Commands\AdminResourceMake'
+        '\Chuangke\LaravelGenerators\Commands\AdminMake'
     ];
 
     /**
