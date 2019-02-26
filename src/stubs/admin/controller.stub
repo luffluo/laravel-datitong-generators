@@ -22,7 +22,7 @@ class DummyControllerClass extends BaseController
     {
         $search = $request->all();
 
-        $data = $this->service->getAllByPage();
+        $data = $this->service->getAllByPage($search);
 
         return $this->view($this->currentView, compact('data', 'search'));
     }

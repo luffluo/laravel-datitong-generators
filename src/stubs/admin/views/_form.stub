@@ -41,13 +41,6 @@
     <!-- 引入样式 -->
 @endsection
 
-@section('admin-css-inner')
-    @parent
-    <!-- 引入样式 -->
-    <style>
-    </style>
-@endsection
-
 @section('admin-js')
     @parent
 @endsection

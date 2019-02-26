@@ -1,4 +1,4 @@
-@extends('admin.layouts.main')
+@extends('admin::layouts.main')
 
 @section('operation_buttons')
     @if(!empty($menu['current_access']) && in_array('add', $menu['current_access']))
@@ -42,11 +42,11 @@
                                 <td>{{ $item['name'] ?? '-' }}</td>
                                 <td valign="middle" class="ctr onlyline">
                                     @if(!empty($menu['current_access']) && in_array('edit', $menu['current_access']))
-                                        <a href="{{ $current_module_url }}edit?id={{ $item['id'] }}" class="blue">编辑</a>
+                                        <a href="{{ $current_module_url }}edit?id={{ $item['id'] }}" class="btn btn-primary btn-xs">编辑</a>
                                     @endif
                                     @if(!empty($menu['current_access']) && in_array('delete', $menu['current_access']))
                                         <a data-src="{{ $current_module_url }}delete?id={{ $item['id'] }}"
-                                           class="blue data-del">删除</a>
+                                           class="btn btn-danger btn-xs data-del">删除</a>
                                     @endif
                                 </td>
                             </tr>
@@ -65,6 +65,14 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('admin-css')
+    @parent
+@endsection
+
+@section('admin-js')
+    @parent
 @endsection
 
 @section('admin-js-inner')
